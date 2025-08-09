@@ -3,4 +3,4 @@ name = "game-of-life"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[lib]

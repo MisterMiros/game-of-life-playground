@@ -105,7 +105,7 @@ public class LifeEngine : ILifeEngine
         return _activeCells.Contains(new Cell(x, y));
     }
 
-    public IReadOnlySet<Cell> GetActiveCells()
+    public IEnumerable<Cell> GetActiveCells()
     {
         return _activeCells;
     }

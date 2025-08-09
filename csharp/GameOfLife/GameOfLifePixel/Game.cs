@@ -18,12 +18,18 @@ public class Game
     public GameConfig Config { get; set; }
 
     private const KeyboardKey RunKey = KeyboardKey.Space;
+    private const KeyboardKey NextKey = KeyboardKey.Enter;
     private const MouseButton MoveButton = MouseButton.Right;
     private const MouseButton DrawButton = MouseButton.Left;
 
     public Game(GameConfig config)
     {
-        _engine = new LifeEngine(config.Cols, config.Rows, MakeTestPoints());
+        _engine = new RustLifeEngine(config.Cols, config.Rows);
+        foreach (var point in MakeTestPoints())
+        {
+            _engine.ActivateCell(point.X, point.Y);
+        }
+
         _camera = new Camera2D()
         {
             Target = new Vector2(0, 0),
@@ -75,6 +81,7 @@ public class Game
     private void OnUpdate()
     {
         HandleRunToggle();
+        HandleNext();
         HandleMove();
         HandleZoom();
         HandleDraw();
@@ -98,6 +105,16 @@ public class Game
         {
             _accumulator = 0f;
         }
+    }
+
+    private void HandleNext()
+    {
+        if (!Raylib.IsKeyPressed(NextKey))
+        {
+            return;
+        }
+        
+        _engine.Next();
     }
 
     private void RunEngine()
@@ -154,7 +171,7 @@ public class Game
         var mouseScreen = Raylib.GetMousePosition();
         var mouseWorld = Raylib.GetScreenToWorld2D(mouseScreen, _camera);
         var center = ToCell(mouseWorld);
-        
+
         var topLeftX = Math.Clamp(center.X - _randomCellsSquareSide / 2, 0, Config.Cols - 1);
         var topLeftY = Math.Clamp(center.Y - _randomCellsSquareSide / 2, 0, Config.Cols - 1);
         var bottomRightX = Math.Clamp(center.X + _randomCellsSquareSide / 2, 0, Config.Cols - 1);
@@ -164,7 +181,7 @@ public class Game
         {
             return;
         }
-        
+
         var areaSize = (bottomRightX - topLeftX) * (bottomRightY - topLeftY);
         var cellCount = Random.Shared.Next(1, areaSize);
         _engine.PrepareForCellInflux(cellCount);
@@ -174,7 +191,6 @@ public class Game
             var y = Random.Shared.Next(topLeftY, bottomRightY);
             _engine.ActivateCell(x, y);
         }
-
     }
 
     private void DrawCells()
@@ -201,6 +217,7 @@ public class Game
             var py = (int)(cell.Y * Config.CellSize);
             Raylib.DrawRectangle(px, py, Config.CellSizeInt, Config.CellSizeInt, Color.White);
         }
+
         Raylib.DrawRectangleLines(0, 0, Config.Cols * Config.CellSizeInt, Config.Rows * Config.CellSizeInt,
             Color.White);
 

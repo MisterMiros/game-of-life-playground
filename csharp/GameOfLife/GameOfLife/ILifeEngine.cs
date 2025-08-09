@@ -9,6 +9,6 @@ public interface ILifeEngine
     void PrepareForCellInflux(int count);
     void ActivateCell(int x, int y);
     
-    IReadOnlySet<Cell> GetActiveCells();
+    IEnumerable<Cell> GetActiveCells();
 
 }
