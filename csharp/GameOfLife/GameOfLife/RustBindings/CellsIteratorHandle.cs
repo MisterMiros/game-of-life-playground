@@ -17,7 +17,7 @@ internal sealed class IteratorHandle : SafeHandle
 
     protected override bool ReleaseHandle()
     {
-        EngineNativeMethods.engine_cells_iterator_free(handle);
+        EngineNativeMethods.engine_alive_cells_iterator_free(handle);
         SetHandle(IntPtr.Zero);
         return true;
     }

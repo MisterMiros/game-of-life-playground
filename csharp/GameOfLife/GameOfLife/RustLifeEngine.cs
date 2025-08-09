@@ -36,13 +36,18 @@ public class RustLifeEngine : ILifeEngine, IDisposable
     {
         using var iteratorHandle = new IteratorHandle();
         iteratorHandle.Init(_engineHandle);
-        var next = EngineNativeMethods.engine_cells_iterator_next(iteratorHandle.DangerousGetHandle());
+        var next = EngineNativeMethods.engine_alive_cells_iterator_next(iteratorHandle.DangerousGetHandle());
         while (next != IntPtr.Zero)
         {
             var native = Marshal.PtrToStructure<EngineNativeMethods.NativeCell>(next);
             yield return new Cell((int)native.x, (int)native.y);
-            next = EngineNativeMethods.engine_cells_iterator_next(iteratorHandle.DangerousGetHandle());
+            next = EngineNativeMethods.engine_alive_cells_iterator_next(iteratorHandle.DangerousGetHandle());
         }
+    }
+
+    public void GenerateRandomSquare(Cell topLeft, uint size)
+    {
+        EngineNativeMethods.engine_generate_random_square(_engineHandle.DangerousGetHandle(), (uint)topLeft.X, (uint)topLeft.Y, size);
     }
 
     public void Dispose()

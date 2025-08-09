@@ -40,7 +40,7 @@ public class Game
         Config = config;
         _step = 1f / Config.GameIterationsPerSecond;
         var smallerSide = Math.Min(Config.Cols, Config.Rows);
-        _randomCellsSquareSide = smallerSide / 10;
+        _randomCellsSquareSide = Math.Min(smallerSide / 10, 1000);
     }
 
     private HashSet<Cell> MakeTestPoints()
@@ -113,7 +113,7 @@ public class Game
         {
             return;
         }
-        
+
         _engine.Next();
     }
 
@@ -174,6 +174,10 @@ public class Game
 
         var topLeftX = Math.Clamp(center.X - _randomCellsSquareSide / 2, 0, Config.Cols - 1);
         var topLeftY = Math.Clamp(center.Y - _randomCellsSquareSide / 2, 0, Config.Cols - 1);
+        
+        _engine.GenerateRandomSquare(new Cell(topLeftX, topLeftY), (uint)_randomCellsSquareSide);
+        
+        /*
         var bottomRightX = Math.Clamp(center.X + _randomCellsSquareSide / 2, 0, Config.Cols - 1);
         var bottomRightY = Math.Clamp(center.Y + _randomCellsSquareSide / 2, 0, Config.Cols - 1);
 
@@ -191,6 +195,7 @@ public class Game
             var y = Random.Shared.Next(topLeftY, bottomRightY);
             _engine.ActivateCell(x, y);
         }
+        */
     }
 
     private void DrawCells()

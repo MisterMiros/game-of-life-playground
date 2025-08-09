@@ -10,5 +10,7 @@ public interface ILifeEngine
     void ActivateCell(int x, int y);
     
     IEnumerable<Cell> GetActiveCells();
+    
+    void GenerateRandomSquare(Cell topLeft, uint size);
 
 }

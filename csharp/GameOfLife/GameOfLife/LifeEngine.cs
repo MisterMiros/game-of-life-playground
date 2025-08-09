@@ -110,6 +110,11 @@ public class LifeEngine : ILifeEngine
         return _activeCells;
     }
 
+    public void GenerateRandomSquare(Cell topLeft, uint size)
+    {
+        return;
+    }
+
     public void PrepareForCellInflux(int count)
     {
         _activeCells.EnsureCapacity(_activeCells.Capacity + count);

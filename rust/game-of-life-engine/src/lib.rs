@@ -1,5 +1,7 @@
-use std::collections::hash_set::Iter;
+use rand::Rng;
+use std::cmp::min;
 use std::collections::HashSet;
+use std::collections::hash_set::Iter;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone)]
 #[repr(C)]
@@ -35,10 +37,27 @@ impl Engine {
     pub fn activate_cell(&mut self, x: u32, y: u32) {
         let cell = Cell::new(x, y);
         if self.is_cell_within_bounds(&cell) {
+            self.activate_cell_internal(&cell);
+        }
+    }
+
+    pub fn activate_cells(&mut self, cells: &[Cell]) {
+        self.alive_cells.reserve(cells.len());
+        // worst case scenario: each cell has 8 neighbors, but probably there would be a lot
+        // of intersections when adding many cells at once
+        // so less space is reserved than the worst case scenario
+        self.potential_cells.reserve(cells.len() * 6);
+        for cell in cells {
+            self.activate_cell_internal(cell);
+        }
+    }
+
+    fn activate_cell_internal(&mut self, cell: &Cell) {
+        if self.is_cell_within_bounds(cell) {
             self.alive_cells.insert(cell.clone());
             self.potential_cells.insert(cell.clone());
             for neighbour in self.get_cell_neighbours(&cell) {
-                self.potential_cells.insert(neighbour);           
+                self.potential_cells.insert(neighbour);
             }
         }
     }
@@ -52,12 +71,12 @@ impl Engine {
         for cell in &self.potential_cells {
             let is_alive = self.alive_cells.contains(cell);
             let neighbours = self.get_cell_neighbours(cell);
-            let alive_neighbouts_count = neighbours
+            let alive_neighbours_count = neighbours
                 .iter()
                 .filter(|c| self.alive_cells.contains(c))
                 .count();
             if is_alive {
-                if alive_neighbouts_count == 2 || alive_neighbouts_count == 3 {
+                if alive_neighbours_count == 2 || alive_neighbours_count == 3 {
                     alive_cells_next.insert(cell.clone());
                 } else {
                     potential_cells_next.insert(cell.clone());
@@ -66,7 +85,7 @@ impl Engine {
                     });
                 }
             } else {
-                if alive_neighbouts_count == 3 {
+                if alive_neighbours_count == 3 {
                     alive_cells_next.insert(cell.clone());
                     potential_cells_next.insert(cell.clone());
                     neighbours.into_iter().for_each(|c| {
@@ -80,8 +99,25 @@ impl Engine {
         self.potential_cells = potential_cells_next;
     }
 
-    pub fn alive_cells_iterator(&self) -> Iter<Cell> {
-        self.alive_cells.iter()
+    pub fn generate_random_square(&mut self, top_left: Cell, size: u32) {
+        if !self.is_cell_within_bounds(&top_left) {
+            return;
+        }
+        let bottom_right = Cell::new(
+            min(top_left.x + size, self.cols) - 1,
+            min(top_left.y + size, self.rows) - 1,
+        );
+        let area = (bottom_right.x - top_left.x) as usize * (bottom_right.y - top_left.y) as usize;
+        let mut rng = rand::rng();
+        let amount_to_generate = rng.random_range(0..area);
+
+        self.alive_cells.reserve(amount_to_generate);
+        self.potential_cells.reserve(amount_to_generate * 6);
+        for _ in 0..amount_to_generate {
+            let x = rng.random_range(top_left.x..bottom_right.x + 1);
+            let y = rng.random_range(top_left.y..bottom_right.y + 1);
+            self.activate_cell(x, y);
+        }
     }
 
     fn get_cell_neighbours(&self, cell: &Cell) -> Vec<Cell> {
@@ -95,9 +131,9 @@ impl Engine {
             Cell::new(cell.x + 1, cell.y - 1), // top right
             Cell::new(cell.x, cell.y - 1),     // top
         ]
-            .into_iter()
-            .filter(|c| self.is_cell_within_bounds(c))
-            .collect()
+        .into_iter()
+        .filter(|c| self.is_cell_within_bounds(c))
+        .collect()
     }
 
     fn is_cell_within_bounds(&self, cell: &Cell) -> bool {
@@ -106,11 +142,6 @@ impl Engine {
 }
 
 /* ===== C-compatible FFI surface for C#/PInvoke ===== */
-
-#[repr(C)]
-pub struct IteratorContainer<'a> {
-    pub iterator: Iter<'a, Cell>
-}
 
 // Create a new Engine and return an opaque pointer to it.
 #[unsafe(no_mangle)]
@@ -146,18 +177,28 @@ pub extern "C" fn engine_activate_cell(ptr: *mut Engine, x: u32, y: u32) {
 }
 
 #[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_get<'a>(ptr: *const Engine) -> *mut IteratorContainer<'a> {
+pub extern "C" fn engine_generate_random_square(
+    ptr: *mut Engine,
+    top_left_x: u32,
+    top_left_y: u32,
+    size: u32,
+) {
+    if let Some(engine) = unsafe { ptr.as_mut() } {
+        engine.generate_random_square(Cell::new(top_left_x, top_left_y), size);
+    }
+}
+
+#[unsafe(no_mangle)]
+fn engine_alive_cells_iterator_get<'a>(ptr: *const Engine) -> *mut Iter<'a, Cell> {
     if let Some(engine) = unsafe { ptr.as_ref() } {
-        Box::into_raw(Box::new(IteratorContainer {
-            iterator: engine.alive_cells.iter(),
-        }))
+        Box::into_raw(Box::new(engine.alive_cells.iter()))
     } else {
         std::ptr::null_mut()
     }
 }
 
 #[unsafe(no_mangle)]
-fn engine_cells_iterator_free(ptr: *mut IteratorContainer) {
+fn engine_alive_cells_iterator_free(ptr: *mut Iter<Cell>) {
     if ptr.is_null() {
         return;
     }
@@ -167,11 +208,9 @@ fn engine_cells_iterator_free(ptr: *mut IteratorContainer) {
 }
 
 #[unsafe(no_mangle)]
-fn engine_cells_iterator_next(
-    ptr: *mut IteratorContainer,
-) -> *const Cell {
-    if let Some(container) = unsafe { ptr.as_mut() } {
-        if let Some(cell) = container.iterator.next() {
+fn engine_alive_cells_iterator_next(ptr: *mut Iter<Cell>) -> *const Cell {
+    if let Some(iterator) = unsafe { ptr.as_mut() } {
+        if let Some(cell) = iterator.next() {
             &raw const (*cell)
         } else {
             std::ptr::null()
@@ -180,4 +219,3 @@ fn engine_cells_iterator_next(
         std::ptr::null()
     }
 }
-
