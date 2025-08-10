@@ -1,6 +1,5 @@
 ﻿namespace GameOfLife.RustBindings;
 
-// EngineHandle.cs
 using System;
 using System.Runtime.InteropServices;
 

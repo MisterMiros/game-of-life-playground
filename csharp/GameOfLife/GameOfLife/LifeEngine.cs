@@ -36,7 +36,7 @@ public class LifeEngine : ILifeEngine
 
     private HashSet<Cell> GetPotentialCells(HashSet<Cell> activeCells)
     {
-        var potentialCells = new HashSet<Cell>(activeCells.Capacity * 8);
+        var potentialCells = new HashSet<Cell>(activeCells.Capacity * 6);
         foreach (var activeCell in activeCells)
         {
             potentialCells.Add(activeCell);
@@ -94,7 +94,7 @@ public class LifeEngine : ILifeEngine
         _activeCells = activeCellsNext;
         _potentialCells = potentialCellsNext;
     }
-
+    
     private bool IsWithinBounds(Cell point)
     {
         return point.X >= 0 && point.X < Rows && point.Y >= 0 && point.Y < Cols;
@@ -112,15 +112,32 @@ public class LifeEngine : ILifeEngine
 
     public void GenerateRandomSquare(Cell topLeft, uint size)
     {
-        return;
-    }
+        if (!IsWithinBounds(topLeft))
+        {
+            return;
+        }
+        var bottomRight = new Cell(
+            Math.Min(topLeft.X + (int)size, Cols) - 1,
+            Math.Min(topLeft.Y + (int)size, Rows) - 1
+        );
 
-    public void PrepareForCellInflux(int count)
-    {
-        _activeCells.EnsureCapacity(_activeCells.Capacity + count);
-        _potentialCells.EnsureCapacity(_potentialCells.Capacity + count * 8);
-    }
+        if (topLeft.X >= bottomRight.X || topLeft.Y >= bottomRight.Y)
+        {
+            return;
+        }
 
+        var areaSize = (bottomRight.X - topLeft.X) * (bottomRight.Y - topLeft.Y);
+        var cellCount = Random.Shared.Next(1, areaSize);
+        _activeCells.EnsureCapacity(_activeCells.Capacity + cellCount);
+        _potentialCells.EnsureCapacity(_potentialCells.Capacity + cellCount * 6);
+        for (var i = 0; i < cellCount; i++)
+        {
+            var x = Random.Shared.Next(topLeft.X, bottomRight.X);
+            var y = Random.Shared.Next(topLeft.Y, bottomRight.Y);
+            ActivateCell(x, y);
+        }
+    }
+    
     public void ActivateCell(int x, int y)
     {
         var activeCell = new Cell(x, y);

@@ -1,12 +1,11 @@
 ﻿namespace GameOfLife.RustBindings;
 
-// IteratorHandle.cs
 using System;
 using System.Runtime.InteropServices;
 
-internal sealed class IteratorHandle : SafeHandle
+internal sealed class CellsIteratorHandle : SafeHandle
 {
-    public IteratorHandle() : base(IntPtr.Zero, ownsHandle: true) { }
+    public CellsIteratorHandle() : base(IntPtr.Zero, ownsHandle: true) { }
 
     public override bool IsInvalid => handle == IntPtr.Zero;
 

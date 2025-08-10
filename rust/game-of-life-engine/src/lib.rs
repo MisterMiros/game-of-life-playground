@@ -66,7 +66,7 @@ impl Engine {
         let mut alive_cells_next: HashSet<Cell> =
             HashSet::with_capacity(self.alive_cells.capacity());
         let mut potential_cells_next: HashSet<Cell> =
-            HashSet::with_capacity(self.alive_cells.capacity() * 8);
+            HashSet::with_capacity(self.potential_cells.capacity());
 
         for cell in &self.potential_cells {
             let is_alive = self.alive_cells.contains(cell);
@@ -107,6 +107,9 @@ impl Engine {
             min(top_left.x + size, self.cols) - 1,
             min(top_left.y + size, self.rows) - 1,
         );
+        if top_left.x >= bottom_right.x || top_left.y >= bottom_right.y {
+            return;
+        }
         let area = (bottom_right.x - top_left.x) as usize * (bottom_right.y - top_left.y) as usize;
         let mut rng = rand::rng();
         let amount_to_generate = rng.random_range(0..area);

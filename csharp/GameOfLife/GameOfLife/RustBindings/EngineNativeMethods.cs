@@ -2,7 +2,7 @@
 
 namespace GameOfLife.RustBindings;
 
-public class EngineNativeMethods
+public static partial class EngineNativeMethods
 {
     private const string DllName = "game_of_life_engine";
 
@@ -39,10 +39,4 @@ public class EngineNativeMethods
         uint size);
 
     // Native layout of Cell (repr(C) with two u32 fields)
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct NativeCell
-    {
-        public uint x;
-        public uint y;
-    }
 }

@@ -20,7 +20,7 @@ public class Game
     private const KeyboardKey RunKey = KeyboardKey.Space;
     private const KeyboardKey NextKey = KeyboardKey.Enter;
     private const MouseButton MoveButton = MouseButton.Right;
-    private const MouseButton DrawButton = MouseButton.Left;
+    private const MouseButton GenerateSquareButton = MouseButton.Left;
 
     public Game(GameConfig config)
     {
@@ -84,7 +84,7 @@ public class Game
         HandleNext();
         HandleMove();
         HandleZoom();
-        HandleDraw();
+        HandleGenerateSquare();
 
         RunEngine();
         DrawCells();
@@ -161,9 +161,9 @@ public class Game
         _camera.Target -= (mouseWorldAfter - mouseWorldBefore) / _camera.Zoom;
     }
 
-    private void HandleDraw()
+    private void HandleGenerateSquare()
     {
-        if (!Raylib.IsMouseButtonPressed(DrawButton))
+        if (!Raylib.IsMouseButtonPressed(GenerateSquareButton))
         {
             return;
         }
@@ -176,26 +176,6 @@ public class Game
         var topLeftY = Math.Clamp(center.Y - _randomCellsSquareSide / 2, 0, Config.Cols - 1);
         
         _engine.GenerateRandomSquare(new Cell(topLeftX, topLeftY), (uint)_randomCellsSquareSide);
-        
-        /*
-        var bottomRightX = Math.Clamp(center.X + _randomCellsSquareSide / 2, 0, Config.Cols - 1);
-        var bottomRightY = Math.Clamp(center.Y + _randomCellsSquareSide / 2, 0, Config.Cols - 1);
-
-        if (topLeftX >= bottomRightX || topLeftY >= bottomRightY)
-        {
-            return;
-        }
-
-        var areaSize = (bottomRightX - topLeftX) * (bottomRightY - topLeftY);
-        var cellCount = Random.Shared.Next(1, areaSize);
-        _engine.PrepareForCellInflux(cellCount);
-        for (var i = 0; i < cellCount; i++)
-        {
-            var x = Random.Shared.Next(topLeftX, bottomRightX);
-            var y = Random.Shared.Next(topLeftY, bottomRightY);
-            _engine.ActivateCell(x, y);
-        }
-        */
     }
 
     private void DrawCells()

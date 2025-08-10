@@ -22,11 +22,6 @@ public class RustLifeEngine : ILifeEngine, IDisposable
     {
         EngineNativeMethods.engine_next(_engineHandle.DangerousGetHandle());
     }
-
-    public void PrepareForCellInflux(int count)
-    {
-    }
-
     public void ActivateCell(int x, int y)
     {
         EngineNativeMethods.engine_activate_cell(_engineHandle.DangerousGetHandle(), (uint)x, (uint)y);
@@ -34,13 +29,17 @@ public class RustLifeEngine : ILifeEngine, IDisposable
 
     public IEnumerable<Cell> GetActiveCells()
     {
-        using var iteratorHandle = new IteratorHandle();
+        return GetActiveNativeCells().Select(c => new Cell((int)c.x, (int)c.y));
+    }
+    
+    public IEnumerable<NativeCell> GetActiveNativeCells()
+    {
+        using var iteratorHandle = new CellsIteratorHandle();
         iteratorHandle.Init(_engineHandle);
         var next = EngineNativeMethods.engine_alive_cells_iterator_next(iteratorHandle.DangerousGetHandle());
         while (next != IntPtr.Zero)
         {
-            var native = Marshal.PtrToStructure<EngineNativeMethods.NativeCell>(next);
-            yield return new Cell((int)native.x, (int)native.y);
+            yield return Marshal.PtrToStructure<NativeCell>(next);
             next = EngineNativeMethods.engine_alive_cells_iterator_next(iteratorHandle.DangerousGetHandle());
         }
     }
