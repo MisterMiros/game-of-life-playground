@@ -52,16 +52,6 @@ impl Engine {
         }
     }
 
-    fn activate_cell_internal(&mut self, cell: &Cell) {
-        if self.is_cell_within_bounds(cell) {
-            self.alive_cells.insert(cell.clone());
-            self.potential_cells.insert(cell.clone());
-            for neighbour in self.get_cell_neighbours(&cell) {
-                self.potential_cells.insert(neighbour);
-            }
-        }
-    }
-
     pub fn next(&mut self) {
         let mut alive_cells_next: HashSet<Cell> =
             HashSet::with_capacity(self.alive_cells.capacity());
@@ -123,6 +113,20 @@ impl Engine {
         }
     }
 
+    pub fn get_alive_cells(&self) -> Iter<Cell> {
+        self.alive_cells.iter()
+    }
+
+    fn activate_cell_internal(&mut self, cell: &Cell) {
+        if self.is_cell_within_bounds(cell) {
+            self.alive_cells.insert(cell.clone());
+            self.potential_cells.insert(cell.clone());
+            for neighbour in self.get_cell_neighbours(&cell) {
+                self.potential_cells.insert(neighbour);
+            }
+        }
+    }
+
     fn get_cell_neighbours(&self, cell: &Cell) -> Vec<Cell> {
         [
             Cell::new(cell.x - 1, cell.y - 1), // top left
@@ -141,84 +145,5 @@ impl Engine {
 
     fn is_cell_within_bounds(&self, cell: &Cell) -> bool {
         cell.x < self.cols && cell.y < self.rows
-    }
-}
-
-/* ===== C-compatible FFI surface for C#/PInvoke ===== */
-
-// Create a new Engine and return an opaque pointer to it.
-#[unsafe(no_mangle)]
-pub extern "C" fn engine_new(cols: u32, rows: u32) -> *mut Engine {
-    Box::into_raw(Box::new(Engine::new(cols, rows)))
-}
-
-// Destroy an Engine previously created by engine_new.
-#[unsafe(no_mangle)]
-pub extern "C" fn engine_free(ptr: *mut Engine) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        drop(Box::from_raw(ptr));
-    }
-}
-
-// Advance the engine by one tick.
-#[unsafe(no_mangle)]
-pub extern "C" fn engine_next(ptr: *mut Engine) {
-    if let Some(engine) = unsafe { ptr.as_mut() } {
-        engine.next();
-    }
-}
-
-// Activate a cell at (x, y).
-#[unsafe(no_mangle)]
-pub extern "C" fn engine_activate_cell(ptr: *mut Engine, x: u32, y: u32) {
-    if let Some(engine) = unsafe { ptr.as_mut() } {
-        engine.activate_cell(x, y);
-    }
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn engine_generate_random_square(
-    ptr: *mut Engine,
-    top_left_x: u32,
-    top_left_y: u32,
-    size: u32,
-) {
-    if let Some(engine) = unsafe { ptr.as_mut() } {
-        engine.generate_random_square(Cell::new(top_left_x, top_left_y), size);
-    }
-}
-
-#[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_get<'a>(ptr: *const Engine) -> *mut Iter<'a, Cell> {
-    if let Some(engine) = unsafe { ptr.as_ref() } {
-        Box::into_raw(Box::new(engine.alive_cells.iter()))
-    } else {
-        std::ptr::null_mut()
-    }
-}
-
-#[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_free(ptr: *mut Iter<Cell>) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        drop(Box::from_raw(ptr));
-    }
-}
-
-#[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_next(ptr: *mut Iter<Cell>) -> *const Cell {
-    if let Some(iterator) = unsafe { ptr.as_mut() } {
-        if let Some(cell) = iterator.next() {
-            &raw const (*cell)
-        } else {
-            std::ptr::null()
-        }
-    } else {
-        std::ptr::null()
     }
 }

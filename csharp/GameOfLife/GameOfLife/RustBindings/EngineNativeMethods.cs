@@ -4,7 +4,7 @@ namespace GameOfLife.RustBindings;
 
 public static partial class EngineNativeMethods
 {
-    private const string DllName = "game_of_life_engine";
+    private const string DllName = "game_of_life_ffi";
 
     // Engine lifecycle
     [DllImport(DllName, CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]

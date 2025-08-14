@@ -9,6 +9,9 @@
     <ItemGroup>
       <Content Include="..\..\..\rust\game-of-life-engine\target\release\game_of_life_engine.dll">
         <Link>game_of_life_engine.dll</Link>
+      </Content>
+      <Content Include="..\..\..\rust\game-of-life-ffi\target\release\game_of_life_ffi.dll">
+        <Link>game_of_life_ffi.dll</Link>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>

@@ -1,0 +1,10 @@
+[package]
+name = "game-of-life-ffi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+game-of-life-engine = { path = "../game-of-life-engine" }
