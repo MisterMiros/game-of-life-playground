@@ -1,0 +1,8 @@
+[package]
+name = "game-of-life"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+game-of-life-engine = { path = "../game-of-life-engine" }
+macroquad = "0.4.14"
