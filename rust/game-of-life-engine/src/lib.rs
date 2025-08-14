@@ -58,9 +58,10 @@ impl Engine {
         let mut potential_cells_next: HashSet<Cell> =
             HashSet::with_capacity(self.potential_cells.capacity());
 
+        let mut neighbours = Vec::with_capacity(8);
         for cell in &self.potential_cells {
             let is_alive = self.alive_cells.contains(cell);
-            let neighbours = self.get_cell_neighbours(cell);
+            self.get_neighbours(cell, &mut neighbours);
             let alive_neighbours_count = neighbours
                 .iter()
                 .filter(|c| self.alive_cells.contains(c))
@@ -70,16 +71,16 @@ impl Engine {
                     alive_cells_next.insert(cell.clone());
                 } else {
                     potential_cells_next.insert(cell.clone());
-                    neighbours.into_iter().for_each(|c| {
-                        potential_cells_next.insert(c);
+                    neighbours.iter().for_each(|c| {
+                        potential_cells_next.insert(c.clone());
                     });
                 }
             } else {
                 if alive_neighbours_count == 3 {
                     alive_cells_next.insert(cell.clone());
                     potential_cells_next.insert(cell.clone());
-                    neighbours.into_iter().for_each(|c| {
-                        potential_cells_next.insert(c);
+                    neighbours.iter().for_each(|c| {
+                        potential_cells_next.insert(c.clone());
                     });
                 }
             }
@@ -121,26 +122,35 @@ impl Engine {
         if self.is_cell_within_bounds(cell) {
             self.alive_cells.insert(cell.clone());
             self.potential_cells.insert(cell.clone());
-            for neighbour in self.get_cell_neighbours(&cell) {
+            let mut neighbours = Vec::with_capacity(8);
+            self.get_neighbours(&cell, &mut neighbours);
+            for neighbour in neighbours {
                 self.potential_cells.insert(neighbour);
             }
         }
     }
-
-    fn get_cell_neighbours(&self, cell: &Cell) -> Vec<Cell> {
-        [
-            Cell::new(cell.x - 1, cell.y - 1), // top left
-            Cell::new(cell.x - 1, cell.y),     // left
-            Cell::new(cell.x - 1, cell.y + 1), // bottom left
-            Cell::new(cell.x, cell.y + 1),     // bottom
-            Cell::new(cell.x + 1, cell.y + 1), // bottom right
-            Cell::new(cell.x + 1, cell.y),     // right
-            Cell::new(cell.x + 1, cell.y - 1), // top right
-            Cell::new(cell.x, cell.y - 1),     // top
-        ]
-        .into_iter()
-        .filter(|c| self.is_cell_within_bounds(c))
-        .collect()
+    fn get_neighbours(&self, cell: &Cell, container: &mut Vec<Cell>) {
+        container.clear();
+        for dx in -1i32..=1i32 {
+            if dx == -1 && cell.x == 0 {
+                continue;
+            }
+            if dx == 1 && cell.x == self.cols - 1 {
+                continue;
+            }
+            for dy in -1i32..=1i32{
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
+                if dy == -1 && cell.y == 0 {
+                    continue;
+                }
+                if dy == 1 && cell.y == self.rows - 1 {
+                    continue;
+                }
+                container.push(Cell::new(u32::saturating_add_signed(cell.x, dx), u32::saturating_add_signed(cell.y, dy)));
+            }
+        }
     }
 
     fn is_cell_within_bounds(&self, cell: &Cell) -> bool {
