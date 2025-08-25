@@ -81,11 +81,11 @@ public class Game
     private void OnUpdate()
     {
         HandleRunToggle();
-        HandleNext();
         HandleMove();
         HandleZoom();
         HandleGenerateSquare();
-
+        HandleNextGeneration();
+        
         RunEngine();
         DrawCells();
     }
@@ -107,9 +107,9 @@ public class Game
         }
     }
 
-    private void HandleNext()
+    private void HandleNextGeneration()
     {
-        if (!Raylib.IsKeyPressed(NextKey))
+        if (_isRunning || !Raylib.IsKeyPressed(NextKey))
         {
             return;
         }
@@ -154,11 +154,11 @@ public class Game
         var mouseScreen = Raylib.GetMousePosition();
         var mouseWorldBefore = Raylib.GetScreenToWorld2D(mouseScreen, _camera);
 
-        var zoomFactor = (mouseWheel > 0) ? 1.1f : 1f / 1.1f;
+        var zoomFactor = (1f + mouseWheel / 10f);
         _camera.Zoom = Math.Clamp(_camera.Zoom * zoomFactor, Config.MinZoom, Config.MaxZoom);
 
         var mouseWorldAfter = Raylib.GetScreenToWorld2D(mouseScreen, _camera);
-        _camera.Target -= (mouseWorldAfter - mouseWorldBefore) / _camera.Zoom;
+        _camera.Target += mouseWorldBefore - mouseWorldAfter;
     }
 
     private void HandleGenerateSquare()
