@@ -2,7 +2,7 @@
 
 namespace GameOfLife.RustBindings;
 
-public static partial class EngineNativeMethods
+internal static class EngineNativeMethods
 {
     private const string DllName = "game_of_life_ffi";
 
@@ -35,6 +35,6 @@ public static partial class EngineNativeMethods
 
     [DllImport(DllName, CallingConvention = CallingConvention.StdCall, ExactSpelling = true,
         EntryPoint = "engine_generate_random_square")]
-    internal static extern void engine_generate_random_square(IntPtr engine, uint top_left_x, uint top_left_y,
+    internal static extern void engine_generate_random_square(IntPtr engine, uint topLeftX, uint topLeftY,
         uint size);
 }
