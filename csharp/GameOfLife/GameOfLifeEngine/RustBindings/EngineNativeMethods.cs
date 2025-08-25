@@ -37,6 +37,4 @@ public static partial class EngineNativeMethods
         EntryPoint = "engine_generate_random_square")]
     internal static extern void engine_generate_random_square(IntPtr engine, uint top_left_x, uint top_left_y,
         uint size);
-
-    // Native layout of Cell (repr(C) with two u32 fields)
 }

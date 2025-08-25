@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOfLife", "GameOfLife\GameOfLife.csproj", "{887E6839-2B19-490F-9778-1CBB7BB15274}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOfLifeEngine", "GameOfLifeEngine\GameOfLifeEngine.csproj", "{887E6839-2B19-490F-9778-1CBB7BB15274}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameOfLifePixel", "GameOfLifePixel\GameOfLifePixel.csproj", "{AB4A528D-609F-4E3D-BEA4-7E93BEFE8D1C}"
 EndProject
