@@ -1,9 +1,9 @@
-use game_of_life_engine::{Cell, Engine};
+use game_of_life_engine::{Cell, LifeEngine};
 use macroquad::prelude::*;
 
 #[macroquad::main("Life")]
 async fn main() {
-    let mut engine = Engine::new(1000, 1000);
+    let mut engine = LifeEngine::new(1000, 1000);
     let mut running = false;
 
     let mut cam = Camera2D::from_display_rect(Rect::new(0.0, 0.0, screen_width(), screen_height()));
@@ -18,17 +18,17 @@ async fn main() {
         // zoom with wheel
         let (_, wheel_y) = mouse_wheel(); // positive = zoom in
         if wheel_y != 0.0 {
-            cam.zoom *= 1.0 + wheel_y * 0.1;
+            cam.zoom *= 1.0 + wheel_y / 500.0;
         }
 
         // pan with drag
-        if is_mouse_button_down(MouseButton::Left) {
+        if is_mouse_button_down(MouseButton::Right) {
             let Vec2 { x: dx, y: dy } = mouse_delta_position();
-            cam.target.x -= dx / cam.zoom.x;
-            cam.target.y -= dy / cam.zoom.y;
+            cam.target.x -= dx * cam.zoom.x;
+            cam.target.y -= dy * cam.zoom.y;
         }
 
-        if is_mouse_button_pressed(MouseButton::Right) {
+        if is_mouse_button_pressed(MouseButton::Left) {
             let world = cam.screen_to_world(Vec2::new(wx, wy));
             let (cx, cy) = (world.x as u32, world.y as u32);
             engine.generate_random_square(Cell { x: cx, y: cy }, 32);
@@ -49,3 +49,9 @@ async fn main() {
         next_frame().await
     }
 }
+
+fn on_update(engine: &mut LifeEngine) {
+    
+}
+
+fn draw_borders() {}

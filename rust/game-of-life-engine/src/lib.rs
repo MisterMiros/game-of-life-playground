@@ -17,16 +17,16 @@ impl Cell {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Engine {
+pub struct LifeEngine {
     cols: u32,
     rows: u32,
     alive_cells: HashSet<Cell>,
     potential_cells: HashSet<Cell>,
 }
 
-impl Engine {
-    pub fn new(cols: u32, rows: u32) -> Engine {
-        Engine {
+impl LifeEngine {
+    pub fn new(cols: u32, rows: u32) -> LifeEngine {
+        LifeEngine {
             cols,
             rows,
             alive_cells: HashSet::new(),

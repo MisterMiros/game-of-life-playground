@@ -1,17 +1,17 @@
 use std::collections::hash_set::Iter;
-use game_of_life_engine::{Cell, Engine};
+use game_of_life_engine::{Cell, LifeEngine};
 
 /* ===== C-compatible FFI surface for C#/PInvoke ===== */
 
 // Create a new Engine and return an opaque pointer to it.
 #[unsafe(no_mangle)]
-pub extern "C" fn engine_new(cols: u32, rows: u32) -> *mut Engine {
-    Box::into_raw(Box::new(Engine::new(cols, rows)))
+pub extern "C" fn engine_new(cols: u32, rows: u32) -> *mut LifeEngine {
+    Box::into_raw(Box::new(LifeEngine::new(cols, rows)))
 }
 
 // Destroy an Engine previously created by engine_new.
 #[unsafe(no_mangle)]
-pub extern "C" fn engine_free(ptr: *mut Engine) {
+pub extern "C" fn engine_free(ptr: *mut LifeEngine) {
     if ptr.is_null() {
         return;
     }
@@ -22,7 +22,7 @@ pub extern "C" fn engine_free(ptr: *mut Engine) {
 
 // Advance the engine by one tick.
 #[unsafe(no_mangle)]
-pub extern "C" fn engine_next(ptr: *mut Engine) {
+pub extern "C" fn engine_next(ptr: *mut LifeEngine) {
     if let Some(engine) = unsafe { ptr.as_mut() } {
         engine.next();
     }
@@ -30,7 +30,7 @@ pub extern "C" fn engine_next(ptr: *mut Engine) {
 
 // Activate a cell at (x, y).
 #[unsafe(no_mangle)]
-pub extern "C" fn engine_activate_cell(ptr: *mut Engine, x: u32, y: u32) {
+pub extern "C" fn engine_activate_cell(ptr: *mut LifeEngine, x: u32, y: u32) {
     if let Some(engine) = unsafe { ptr.as_mut() } {
         engine.activate_cell(x, y);
     }
@@ -39,7 +39,7 @@ pub extern "C" fn engine_activate_cell(ptr: *mut Engine, x: u32, y: u32) {
 // Generate a random square of cells.
 #[unsafe(no_mangle)]
 pub extern "C" fn engine_generate_random_square(
-    ptr: *mut Engine,
+    ptr: *mut LifeEngine,
     top_left_x: u32,
     top_left_y: u32,
     size: u32,
@@ -51,7 +51,7 @@ pub extern "C" fn engine_generate_random_square(
 
 // Produce an iterator over the alive cells.
 #[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_get<'a>(ptr: *const Engine) -> *mut Iter<'a, Cell> {
+fn engine_alive_cells_iterator_get<'a>(ptr: *const LifeEngine) -> *mut Iter<'a, Cell> {
     if let Some(engine) = unsafe { ptr.as_ref() } {
         Box::into_raw(Box::new(engine.get_alive_cells()))
     } else {
