@@ -107,18 +107,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "game-of-life"
-version = "0.1.0"
-dependencies = [
- "game-of-life-engine",
- "macroquad",
-]
-
-[[package]]
 name = "game-of-life-engine"
 version = "0.1.0"
 dependencies = [
  "rand",
+]
+
+[[package]]
+name = "game-of-life-pixel"
+version = "0.1.0"
+dependencies = [
+ "game-of-life-engine",
+ "macroquad",
 ]
 
 [[package]]
