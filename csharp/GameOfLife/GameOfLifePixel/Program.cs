@@ -2,7 +2,7 @@
 
 using GameOfLifePixel;
 
-var gameConfig = new GameConfig(100000, 100000);
+var gameConfig = new GameConfig(10000, 10000);
 
 var game = new Game(gameConfig);
 game.Start();
