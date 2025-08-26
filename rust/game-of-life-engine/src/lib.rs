@@ -114,7 +114,7 @@ impl LifeEngine {
         }
     }
 
-    pub fn get_alive_cells(&self) -> Iter<Cell> {
+    pub fn get_alive_cells(&'_ self) -> Iter<'_, Cell> {
         self.alive_cells.iter()
     }
 
@@ -138,7 +138,7 @@ impl LifeEngine {
             if dx == 1 && cell.x == self.cols - 1 {
                 continue;
             }
-            for dy in -1i32..=1i32{
+            for dy in -1i32..=1i32 {
                 if dx == 0 && dy == 0 {
                     continue;
                 }
@@ -148,7 +148,10 @@ impl LifeEngine {
                 if dy == 1 && cell.y == self.rows - 1 {
                     continue;
                 }
-                container.push(Cell::new(u32::saturating_add_signed(cell.x, dx), u32::saturating_add_signed(cell.y, dy)));
+                container.push(Cell::new(
+                    u32::saturating_add_signed(cell.x, dx),
+                    u32::saturating_add_signed(cell.y, dy),
+                ));
             }
         }
     }
