@@ -77,7 +77,7 @@ public class ConsoleRunner
         }
     }
 
-    private HashSet<Cell> ReadInitialCells(int result, int i)
+    private HashSet<Cell> ReadInitialCells(int cols, int rows)
     {
         HashSet<Cell> initialCells = new();
         while (true)
@@ -96,20 +96,20 @@ public class ConsoleRunner
             var splitted = cell.Split(",");
             if (splitted.Length != 2)
             {
-                HandleInvalidFormat(cell);
+                HandleInvalidFormat();
             }
 
             if (!int.TryParse(splitted[0], out var x))
             {
-                HandleInvalidFormat(cell);
+                HandleInvalidFormat();
             }
 
             if (!int.TryParse(splitted[1], out var y))
             {
-                HandleInvalidFormat(cell);
+                HandleInvalidFormat();
             }
 
-            if (x < 0 || x >= result || y < 0 || y >= i)
+            if (x < 0 || x >= cols || y < 0 || y >= rows)
             {
                 Console.WriteLine($"Invalid cell position: ({x}, {y}), aborting");
                 Environment.Exit(1);
@@ -120,9 +120,9 @@ public class ConsoleRunner
 
         return initialCells;
 
-        void HandleInvalidFormat(string cell)
+        void HandleInvalidFormat()
         {
-            Console.WriteLine($"Invalid cell format: '{cell}', aborting");
+            Console.WriteLine($"Invalid cell format, aborting");
             Environment.Exit(1);
         }
     }
