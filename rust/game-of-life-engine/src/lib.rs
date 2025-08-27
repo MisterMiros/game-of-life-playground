@@ -41,17 +41,6 @@ impl LifeEngine {
         }
     }
 
-    pub fn activate_cells(&mut self, cells: &[Cell]) {
-        self.alive_cells.reserve(cells.len());
-        // worst case scenario: each cell has 8 neighbors, but probably there would be a lot
-        // of intersections when adding many cells at once
-        // so less space is reserved than the worst case scenario
-        self.potential_cells.reserve(cells.len() * 6);
-        for cell in cells {
-            self.activate_cell_internal(cell);
-        }
-    }
-
     pub fn next(&mut self) {
         let mut alive_cells_next: HashSet<Cell> =
             HashSet::with_capacity(self.alive_cells.capacity());

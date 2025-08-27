@@ -1,0 +1,8 @@
+[package]
+name = "game-of-life-console"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+game-of-life-engine = { path = "../game-of-life-engine" }
+itertools = "0.14.0"
