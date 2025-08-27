@@ -28,15 +28,13 @@ public class ConsoleRunner
 
         while (true)
         {
-            var next = Console.ReadLine();
+            var next = Console.ReadLine()?.Trim();
             if ("N".Equals(next, StringComparison.CurrentCultureIgnoreCase))
             {
                 _lifeEngine.Next();
                 Console.WriteLine("Next generation:");
                 Console.WriteLine(FormatActiveCells());
-            }
-            
-            if ("Q".Equals(next, StringComparison.CurrentCultureIgnoreCase))
+            } else if ("Q".Equals(next, StringComparison.CurrentCultureIgnoreCase))
             {
                 break;
             }
@@ -46,7 +44,7 @@ public class ConsoleRunner
     
     private (int cols, int rows) ReadGridSize()
     {
-        var line = Console.ReadLine();
+        var line = Console.ReadLine()?.Trim();
         if (string.IsNullOrWhiteSpace(line))
         {
             HandleInvalidFormat();
@@ -82,7 +80,7 @@ public class ConsoleRunner
         HashSet<Cell> initialCells = new();
         while (true)
         {
-            var cell = Console.ReadLine();
+            var cell = Console.ReadLine()?.Trim();
             if (string.IsNullOrWhiteSpace(cell))
             {
                 continue;
