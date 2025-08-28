@@ -107,6 +107,10 @@ impl LifeEngine {
         self.alive_cells.iter()
     }
 
+    pub fn get_alive_cells_count(&self) -> usize {
+        self.alive_cells.len()
+    }
+
     fn activate_cell_internal(&mut self, cell: &Cell) {
         if self.is_cell_within_bounds(cell) {
             self.alive_cells.insert(cell.clone());

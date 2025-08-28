@@ -21,9 +21,7 @@ impl ConsoleRunner {
             .into_iter()
             .for_each(|c| engine.activate_cell(c.x, c.y));
 
-        println!("Initial alive cells:");
-        println!("{}", Self::format_active_cells(&engine));
-
+        println!("Initial alive cells: {}", engine.get_alive_cells_count());
         let mut input = String::new();
         let stdin = std::io::stdin();
         loop {
@@ -31,9 +29,9 @@ impl ConsoleRunner {
                 .read_line(&mut input)
                 .map_err(|_| "Unable to read line")?;
             if (input.trim().eq_ignore_ascii_case("N")) {
+                let mut instant = std::time::Instant::now();
                 engine.next();
-                println!("Next generation:");
-                println!("{}", Self::format_active_cells(&engine));
+                println!("Next generation is ready. Active cells: {}. Elapsed time: {} ms", engine.get_alive_cells().count(), instant.elapsed().as_millis());
             } else if (input.trim().eq_ignore_ascii_case("Q")) {
                 break;
             }
