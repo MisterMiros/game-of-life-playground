@@ -1,4 +1,5 @@
-﻿using GameOfLife;
+﻿using System.Diagnostics;
+using GameOfLife;
 
 namespace GameOfLifeConsole;
 
@@ -21,27 +22,32 @@ public class ConsoleRunner
         var initialCells = ReadInitialCells(cols, rows);
         _lifeEngine = new LifeEngine(cols, rows, initialCells);
 
-        Console.WriteLine("Initial alive cells:");
-        Console.WriteLine(FormatActiveCells());
-        
+        Console.WriteLine($"Initial alive cells: {initialCells.Count}");
+
         Console.WriteLine("Press 'N' to run the next generation, 'Q' to quit");
 
+        var stopwatch = new Stopwatch();
         while (true)
         {
             var next = Console.ReadLine()?.Trim();
             if ("N".Equals(next, StringComparison.CurrentCultureIgnoreCase))
             {
+                stopwatch.Restart();
                 _lifeEngine.Next();
-                Console.WriteLine("Next generation:");
-                Console.WriteLine(FormatActiveCells());
-            } else if ("Q".Equals(next, StringComparison.CurrentCultureIgnoreCase))
+                stopwatch.Stop();
+                Console.WriteLine(
+                    $"Next generation is ready. Active cells: {_lifeEngine.GetActiveCellCount()}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms"
+                );
+            }
+            else if ("Q".Equals(next, StringComparison.CurrentCultureIgnoreCase))
             {
                 break;
             }
         }
+
         Console.WriteLine("Game of Life finished");
     }
-    
+
     private (int cols, int rows) ReadGridSize()
     {
         var line = Console.ReadLine()?.Trim();

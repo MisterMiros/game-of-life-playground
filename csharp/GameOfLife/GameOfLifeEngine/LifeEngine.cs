@@ -110,6 +110,11 @@ public class LifeEngine : ILifeEngine
         return _activeCells;
     }
 
+    public int GetActiveCellCount()
+    {
+        return _activeCells.Count;
+    }
+
     public void GenerateRandomSquare(Cell topLeft, uint size)
     {
         if (!IsWithinBounds(topLeft))
