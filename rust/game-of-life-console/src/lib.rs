@@ -22,6 +22,7 @@ impl ConsoleRunner {
             .for_each(|c| engine.activate_cell(c.x, c.y));
 
         println!("Initial alive cells: {}", engine.get_alive_cells_count());
+        println!("Press 'N' to run the next generation, 'Q' to quit");
         let mut input = String::new();
         let stdin = std::io::stdin();
         loop {
