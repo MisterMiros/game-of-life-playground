@@ -71,8 +71,9 @@ def run_once(
             text=True,
             timeout=300,
         )
-    except subprocess.TimeoutExpired:
-        return "", [], 0, 0
+    except subprocess.TimeoutExpired as e:
+        print(f"[ERROR] {label} timed out: {e}", file=sys.stderr)
+        return "", [], 0
 
     # Write raw outputs to log
     with open(log_path, "w", encoding="utf-8") as f:
@@ -94,7 +95,8 @@ def generate_test_data() -> List[TestDataSample]:
         TestDataSample(100, 100, 10, 10),
         TestDataSample(100, 100, 100, 10),
         TestDataSample(1000, 1000, 100, 10),
-        TestDataSample(1000, 1000, 1000, 1),
+        TestDataSample(1000, 10000, 1000, 10),
+        TestDataSample(1000, 10000, 2000, 10),
         TestDataSample(10000, 10000, 5000, 1),
         TestDataSample(100000, 100000, 10000, 1),
     ]
