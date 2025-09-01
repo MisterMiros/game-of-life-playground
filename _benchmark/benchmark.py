@@ -96,7 +96,7 @@ def generate_test_data() -> List[TestDataSample]:
         TestDataSample(100, 100, 100, 10),
         TestDataSample(1000, 1000, 100, 10),
         TestDataSample(1000, 10000, 1000, 10),
-        TestDataSample(1000, 10000, 2000, 10),
+        TestDataSample(10000, 10000, 2000, 10),
         TestDataSample(10000, 10000, 5000, 1),
         TestDataSample(100000, 100000, 10000, 1),
     ]
