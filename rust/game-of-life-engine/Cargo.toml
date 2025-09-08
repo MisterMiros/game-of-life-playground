@@ -5,3 +5,10 @@ edition = "2024"
 
 [dependencies]
 rand = "0.9.2"
+rustc-hash = "2.1.1"
+
+[profile.release]
+opt-level = 3
+lto = "fat"         # or "fat" for max perf
+codegen-units = 1
+panic = "abort"

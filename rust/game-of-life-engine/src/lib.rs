@@ -1,7 +1,7 @@
 use rand::Rng;
 use std::cmp::min;
-use std::collections::HashSet;
 use std::collections::hash_set::Iter;
+use rustc_hash::{FxBuildHasher, FxHashSet};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone)]
 #[repr(C)]
@@ -20,8 +20,8 @@ impl Cell {
 pub struct LifeEngine {
     cols: u32,
     rows: u32,
-    alive_cells: HashSet<Cell>,
-    potential_cells: HashSet<Cell>,
+    alive_cells: FxHashSet<Cell>,
+    potential_cells: FxHashSet<Cell>,
 }
 
 impl LifeEngine {
@@ -29,8 +29,8 @@ impl LifeEngine {
         LifeEngine {
             cols,
             rows,
-            alive_cells: HashSet::new(),
-            potential_cells: HashSet::new(),
+            alive_cells: FxHashSet::default(),
+            potential_cells: FxHashSet::default(),
         }
     }
 
@@ -42,10 +42,10 @@ impl LifeEngine {
     }
 
     pub fn next(&mut self) {
-        let mut alive_cells_next: HashSet<Cell> =
-            HashSet::with_capacity(self.alive_cells.capacity());
-        let mut potential_cells_next: HashSet<Cell> =
-            HashSet::with_capacity(self.potential_cells.capacity());
+        let mut alive_cells_next: FxHashSet<Cell> =
+            FxHashSet::with_capacity_and_hasher(self.alive_cells.capacity(), FxBuildHasher::default());
+        let mut potential_cells_next: FxHashSet<Cell> =
+            FxHashSet::with_capacity_and_hasher(self.potential_cells.capacity(), FxBuildHasher::default());
 
         let mut neighbours = Vec::with_capacity(8);
         for cell in &self.potential_cells {
