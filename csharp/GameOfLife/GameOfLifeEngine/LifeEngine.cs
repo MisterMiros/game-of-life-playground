@@ -53,17 +53,23 @@ public class LifeEngine : ILifeEngine
     {
         var activeCellsNext = new HashSet<Cell>(_activeCells.Capacity);
         var potentialCellsNext = new HashSet<Cell>(_potentialCells.Capacity);
+        var neighbourBuffer = new List<Cell>(8);
 
         foreach (var potentialCell in _potentialCells)
         {
+            neighbourBuffer.Clear();
             var isAlive = _activeCells.Contains(potentialCell);
-            var neighbours = _neighbourShifts
-                .Select(potentialCell.Shift)
-                .Where(IsWithinBounds)
-                .ToList();
-            var aliveNeighboursCount = neighbours
-                .Where(_activeCells.Contains)
-                .Count();
+            var aliveNeighboursCount = 0;
+            foreach (var shift in _neighbourShifts)
+            {
+                var neighbour = potentialCell.Shift(shift);
+                if (IsWithinBounds(neighbour))
+                {
+                    aliveNeighboursCount += _activeCells.Contains(neighbour) ? 1 : 0;
+                    neighbourBuffer.Add(neighbour);
+                }
+            }
+            
             if (isAlive)
             {
                 var shouldLive = aliveNeighboursCount is 2 or 3;
@@ -74,7 +80,7 @@ public class LifeEngine : ILifeEngine
                 else
                 {
                     potentialCellsNext.Add(potentialCell);
-                    foreach (var neighbour in neighbours)
+                    foreach (var neighbour in neighbourBuffer)
                     {
                         potentialCellsNext.Add(neighbour);
                     }
@@ -84,7 +90,7 @@ public class LifeEngine : ILifeEngine
             {
                 activeCellsNext.Add(potentialCell);
                 potentialCellsNext.Add(potentialCell);
-                foreach (var neighbour in neighbours)
+                foreach (var neighbour in neighbourBuffer)
                 {
                     potentialCellsNext.Add(neighbour);
                 }
