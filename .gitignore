@@ -3,4 +3,5 @@ obj
 bin
 target
 _benchmark/results_*
+_benchmark/test_cases
 x64

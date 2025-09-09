@@ -1,5 +1,6 @@
 ﻿use game_of_life_engine::{Cell, LifeEngine};
 use std::collections::HashSet;
+use std::fmt::Write;
 use std::io::{BufRead, Error};
 
 trait Reader {
@@ -37,7 +38,12 @@ impl FileReader {
 
 impl Reader for FileReader {
     fn read_line(&mut self, buf: &mut String) -> Result<usize, Error> {
-        self.file.read_line(buf)
+        let result = self.file.read_line(buf);
+        if let Ok(0usize) = result {
+            buf.clear();
+            buf.write_str("END").expect("Unable to write to buffer");
+        }
+        result
     }
 }
 

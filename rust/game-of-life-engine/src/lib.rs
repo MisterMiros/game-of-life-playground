@@ -49,7 +49,7 @@ impl LifeEngine {
             alive_cells,
             potential_cells,
         };
-        
+
         let mut neighbours: Vec<Cell> = Vec::with_capacity(8);
         for cell in engine.alive_cells.iter() {
             engine.potential_cells.insert(cell.clone());
@@ -88,9 +88,9 @@ impl LifeEngine {
 
     pub fn next(&mut self) {
         let mut alive_cells_next: FxHashSet<Cell> =
-            FxHashSet::with_capacity_and_hasher(self.alive_cells.len(), FxBuildHasher::default());
+            FxHashSet::with_capacity_and_hasher(self.alive_cells.capacity(), FxBuildHasher::default());
         let mut potential_cells_next: FxHashSet<Cell> = FxHashSet::with_capacity_and_hasher(
-            self.potential_cells.len(),
+            self.potential_cells.capacity(),
             FxBuildHasher::default(),
         );
 

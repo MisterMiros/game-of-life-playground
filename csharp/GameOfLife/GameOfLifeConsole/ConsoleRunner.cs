@@ -9,8 +9,20 @@ public class ConsoleRunner
     {
         private StreamReader? FileReader { get; init; }
         
-        public string? ReadLine() => FileReader == null ? Console.ReadLine() : FileReader.ReadLine();
-        
+        public string? ReadLine()
+        {
+            if (FileReader == null)
+            {
+                return Console.ReadLine();
+            }
+
+            if (FileReader.EndOfStream)
+            {
+                return "END";
+            }
+            return FileReader.ReadLine();
+        }
+
         public static Reader FromFile(string path) => new() {FileReader = new StreamReader(File.OpenRead(path))};
         public static Reader FromConsole() => new();
         public void Dispose() => FileReader?.Dispose();
