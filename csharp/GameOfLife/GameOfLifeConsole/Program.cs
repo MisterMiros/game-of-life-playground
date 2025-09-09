@@ -1,4 +1,6 @@
-﻿using GameOfLife;
+﻿using CommandLine;
+using GameOfLife;
 using GameOfLifeConsole;
 
-new ConsoleRunner().Run();
+var runner = new ConsoleRunner();
+Parser.Default.ParseArguments<Options>(args).WithParsed(o => runner.Run(o));

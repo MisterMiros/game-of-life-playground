@@ -5,22 +5,54 @@ namespace GameOfLifeConsole;
 
 public class ConsoleRunner
 {
+    private class Reader
+    {
+        private StreamReader? FileReader { get; init; }
+        
+        public string? ReadLine()
+        {
+            if (FileReader == null)
+            {
+                return Console.ReadLine();
+            }
+
+            if (FileReader.EndOfStream)
+            {
+                return "END";
+            }
+            return FileReader.ReadLine();
+        }
+
+        public static Reader FromFile(string path) => new() {FileReader = new StreamReader(File.OpenRead(path))};
+        public static Reader FromConsole() => new();
+        public void Dispose() => FileReader?.Dispose();
+    }
+
     private LifeEngine _lifeEngine;
 
-    public void Run()
+    public void Run(Options options)
     {
         Console.WriteLine("Running Game of Life in console...");
 
-        Console.WriteLine("Enter the size of the grid (columns and rows) using the following format: cols,rows");
+        Console.WriteLine($"Grid size: {options.Size}x{options.Size}");
 
-        var (cols, rows) = ReadGridSize();
+        Reader reader;
+        if (options.File != null)
+        {
+            Console.WriteLine($"Reading initial cell configuration from file: {options.File}");
+            reader = Reader.FromFile(options.File);
+        }
+        else
+        {
+            Console.WriteLine("Enter the initial cell configuration using the following format:\n" +
+                              "- Each line should contain one cell position as x,y coordinates\n" +
+                              "- Type 'END' on a new line when you have finished entering all cells");
+            reader = Reader.FromConsole();
+        }
 
-        Console.WriteLine("Enter the initial cell configuration using the following format:\n" +
-                          "- Each line should contain one cell position as x,y coordinates\n" +
-                          "- Type 'END' on a new line when you have finished entering all cells");
 
-        var initialCells = ReadInitialCells(cols, rows);
-        _lifeEngine = new LifeEngine(cols, rows, initialCells);
+        var initialCells = ReadInitialCells(options.Size, reader);
+        _lifeEngine = new LifeEngine(options.Size, options.Size, initialCells);
 
         Console.WriteLine($"Initial alive cells: {initialCells.Count}");
 
@@ -45,48 +77,16 @@ public class ConsoleRunner
             }
         }
 
+        reader.Dispose();
         Console.WriteLine("Game of Life finished");
     }
 
-    private (int cols, int rows) ReadGridSize()
-    {
-        var line = Console.ReadLine()?.Trim();
-        if (string.IsNullOrWhiteSpace(line))
-        {
-            HandleInvalidFormat();
-        }
-
-        var splitted = line!.Split(",");
-        if (splitted.Length != 2)
-        {
-            HandleInvalidFormat();
-        }
-
-        if (!int.TryParse(splitted[0], out var cols))
-        {
-            HandleInvalidFormat();
-        }
-
-        if (!int.TryParse(splitted[1], out var rows))
-        {
-            HandleInvalidFormat();
-        }
-
-        return (cols, rows);
-
-        void HandleInvalidFormat()
-        {
-            Console.WriteLine($"Invalid grid format, aborting");
-            Environment.Exit(1);
-        }
-    }
-
-    private HashSet<Cell> ReadInitialCells(int cols, int rows)
+    private HashSet<Cell> ReadInitialCells(int size, Reader input)
     {
         HashSet<Cell> initialCells = new();
         while (true)
         {
-            var cell = Console.ReadLine()?.Trim();
+            var cell = input.ReadLine();
             if (string.IsNullOrWhiteSpace(cell))
             {
                 continue;
@@ -113,7 +113,7 @@ public class ConsoleRunner
                 HandleInvalidFormat();
             }
 
-            if (x < 0 || x >= cols || y < 0 || y >= rows)
+            if (x < 0 || x >= size || y < 0 || y >= size)
             {
                 Console.WriteLine($"Invalid cell position: ({x}, {y}), aborting");
                 Environment.Exit(1);
@@ -129,10 +129,5 @@ public class ConsoleRunner
             Console.WriteLine($"Invalid cell format, aborting");
             Environment.Exit(1);
         }
-    }
-
-    private string FormatActiveCells()
-    {
-        return string.Join("\n", _lifeEngine.GetActiveCells().Select(c => $"{c.X},{c.Y}"));
     }
 }
