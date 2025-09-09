@@ -1,105 +1,117 @@
 ﻿use game_of_life_engine::{Cell, LifeEngine};
-use itertools::Itertools;
 use std::collections::HashSet;
+use std::io::{BufRead, Error};
 
-pub struct ConsoleRunner {}
+trait Reader {
+    fn read_line(&mut self, buf: &mut String) -> Result<usize, std::io::Error>;
+}
 
-impl ConsoleRunner {
-    pub fn run() -> Result<(), String> {
-        println!("Running Game of Life in console...");
-        println!(
-            "Enter the size of the grid (columns and rows) using the following format: cols,rows"
-        );
-        let (cols, rows) = Self::read_grid_size()?;
+struct StdinReader {
+    stdin: std::io::Stdin,
+}
 
-        println!("Enter the initial cell configuration using the following format:");
-        println!("- Each line should contain one cell position as x,y coordinates");
-        println!("- Type 'END' on a new line when you have finished entering all cells");
-        let initial_cells = Self::read_initial_cells(cols, rows)?;
-        let mut engine = LifeEngine::new(cols, rows);
-        initial_cells
-            .into_iter()
-            .for_each(|c| engine.activate_cell(c.x, c.y));
-
-        println!("Initial alive cells: {}", engine.get_alive_cells_count());
-        println!("Press 'N' to run the next generation, 'Q' to quit");
-        let mut input = String::new();
-        let stdin = std::io::stdin();
-        loop {
-            stdin
-                .read_line(&mut input)
-                .map_err(|_| "Unable to read line")?;
-            if (input.trim().eq_ignore_ascii_case("N")) {
-                let mut instant = std::time::Instant::now();
-                engine.next();
-                println!("Next generation is ready. Active cells: {}. Elapsed time: {} ms", engine.get_alive_cells().count(), instant.elapsed().as_millis());
-            } else if (input.trim().eq_ignore_ascii_case("Q")) {
-                break;
-            }
-            input.clear();
+impl StdinReader {
+    fn new() -> Self {
+        Self {
+            stdin: std::io::stdin(),
         }
-
-        Ok(())
     }
+}
 
-    const READ_GRID_SIZE_ERROR: &'static str = "Invalid grid format, aborting";
-    fn read_grid_size() -> Result<(u32, u32), String> {
-        let mut input = String::new();
-        let stdin = std::io::stdin();
+impl Reader for StdinReader {
+    fn read_line(&mut self, buf: &mut String) -> Result<usize, Error> {
+        self.stdin.read_line(buf)
+    }
+}
+struct FileReader {
+    file: std::io::BufReader<std::fs::File>,
+}
+
+impl FileReader {
+    fn new(path: String) -> Self {
+        Self {
+            file: std::io::BufReader::new(std::fs::File::open(path).unwrap()),
+        }
+    }
+}
+
+impl Reader for FileReader {
+    fn read_line(&mut self, buf: &mut String) -> Result<usize, Error> {
+        self.file.read_line(buf)
+    }
+}
+
+pub fn run(file: Option<String>, size: u32) -> Result<(), String> {
+    println!("Running Game of Life in console...");
+    println!("Grid size: {}x{}", size, size);
+
+    let initial_cells = match file {
+        Some(path) => {
+            println!("Reading initial cell configuration from file: {}", path);
+            read_initial_cells(size, &mut FileReader::new(path))
+        }
+        None => {
+            println!("Enter the initial cell configuration using the following format:");
+            println!("- Each line should contain one cell position as x,y coordinates");
+            println!("- Type 'END' on a new line when you have finished entering all cells");
+            read_initial_cells(size, &mut StdinReader::new())
+        }
+    }?;
+
+    let mut engine = LifeEngine::with_initial_cells(size, size, initial_cells.clone());
+
+    println!("Initial alive cells: {}", engine.get_alive_cells_count());
+    println!("Press 'N' to run the next generation, 'Q' to quit");
+    let mut input = String::new();
+    let stdin = std::io::stdin();
+    loop {
         stdin
             .read_line(&mut input)
-            .map_err(|_| "Unable to read line for grid size")?;
+            .map_err(|_| "Unable to read line")?;
+        if input.trim().eq_ignore_ascii_case("N") {
+            let instant = std::time::Instant::now();
+            engine.next();
+            println!(
+                "Next generation is ready. Active cells: {}. Elapsed time: {} ms",
+                engine.get_alive_cells().count(),
+                instant.elapsed().as_millis()
+            );
+        } else if input.trim().eq_ignore_ascii_case("Q") {
+            break;
+        }
+        input.clear();
+    }
+
+    Ok(())
+}
+
+const READ_CELL_ERROR: &'static str = "Invalid cell format, aborting";
+fn read_initial_cells(size: u32, reader: &mut impl Reader) -> Result<HashSet<Cell>, String> {
+    let mut cells = HashSet::new();
+
+    let mut input = String::new();
+    loop {
+        reader
+            .read_line(&mut input)
+            .map_err(|_| "Unable to read line for initial cells")?;
+
+        if input.trim().eq_ignore_ascii_case("END") {
+            break;
+        }
+
         let split = input.trim().split(',').collect::<Vec<&str>>();
         if split.len() != 2 {
-            return Err(Self::READ_GRID_SIZE_ERROR.to_string());
+            return Err(READ_CELL_ERROR.to_string());
+        }
+        let x = split[0].parse::<u32>().map_err(|_| READ_CELL_ERROR)?;
+        let y = split[1].parse::<u32>().map_err(|_| READ_CELL_ERROR)?;
+
+        if x >= size || y >= size {
+            return Err(format!("Invalid cell position: ({}, {}), aborting", x, y));
         }
 
-        let cols = split[0]
-            .parse::<u32>()
-            .map_err(|_| Self::READ_GRID_SIZE_ERROR)?;
-
-        let rows = split[1]
-            .parse::<u32>()
-            .map_err(|_| Self::READ_GRID_SIZE_ERROR)?;
-        Ok((cols, rows))
+        cells.insert(Cell::new(x, y));
+        input.clear();
     }
-
-    const READ_CELL_ERROR: &'static str = "Invalid cell format, aborting";
-    fn read_initial_cells(cols: u32, rows: u32) -> Result<HashSet<Cell>, String> {
-        let mut cells = HashSet::new();
-
-        let mut input = String::new();
-        loop {
-            let stdin = std::io::stdin();
-            stdin
-                .read_line(&mut input)
-                .map_err(|_| "Unable to read line for initial cells")?;
-
-            if input.trim().eq_ignore_ascii_case("END") {
-                break;
-            }
-
-            let split = input.trim().split(',').collect::<Vec<&str>>();
-            if split.len() != 2 {
-                return Err(Self::READ_CELL_ERROR.to_string());
-            }
-            let x = split[0].parse::<u32>().map_err(|_| Self::READ_CELL_ERROR)?;
-            let y = split[1].parse::<u32>().map_err(|_| Self::READ_CELL_ERROR)?;
-
-            if x >= cols || y >= rows {
-                return Err(format!("Invalid cell position: ({}, {}), aborting", x, y));
-            }
-
-            cells.insert(Cell::new(x, y));
-            input.clear();
-        }
-        Ok(cells)
-    }
-
-    fn format_active_cells(engine: &LifeEngine) -> String {
-        engine
-            .get_alive_cells()
-            .map(|c| format!("{},{}", c.x, c.y))
-            .join("\n")
-    }
+    Ok(cells)
 }

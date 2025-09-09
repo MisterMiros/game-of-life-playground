@@ -1,7 +1,8 @@
 use rand::Rng;
-use std::cmp::min;
-use std::collections::hash_set::Iter;
 use rustc_hash::{FxBuildHasher, FxHashSet};
+use std::cmp::min;
+use std::collections::HashSet;
+use std::collections::hash_set::Iter;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone)]
 #[repr(C)]
@@ -34,18 +35,64 @@ impl LifeEngine {
         }
     }
 
+    pub fn with_initial_cells(cols: u32, rows: u32, initial_cells: HashSet<Cell>) -> LifeEngine {
+        let mut alive_cells =
+            FxHashSet::with_capacity_and_hasher(initial_cells.len(), FxBuildHasher::default());
+        let potential_cells =
+            FxHashSet::with_capacity_and_hasher(initial_cells.len() * 8, FxBuildHasher::default());
+
+        alive_cells.extend(initial_cells);
+
+        let mut engine = LifeEngine {
+            cols,
+            rows,
+            alive_cells,
+            potential_cells,
+        };
+        
+        let mut neighbours: Vec<Cell> = Vec::with_capacity(8);
+        for cell in engine.alive_cells.iter() {
+            engine.potential_cells.insert(cell.clone());
+            engine.get_neighbours(cell, &mut neighbours);
+            for neighbour in neighbours.iter() {
+                engine.potential_cells.insert(neighbour.clone());
+            }
+        }
+        engine
+    }
+
+    pub fn activate_cells(&mut self, cells: HashSet<Cell>) {
+        self.alive_cells.reserve(cells.len());
+        self.potential_cells.reserve(cells.len() * 8);
+        for cell in cells {
+            self.do_activate_cell(cell);
+        }
+    }
+
     pub fn activate_cell(&mut self, x: u32, y: u32) {
         let cell = Cell::new(x, y);
+        self.do_activate_cell(cell);
+    }
+
+    fn do_activate_cell(&mut self, cell: Cell) {
         if self.is_cell_within_bounds(&cell) {
-            self.activate_cell_internal(&cell);
+            self.alive_cells.insert(cell.clone());
+            self.potential_cells.insert(cell.clone());
+            let mut neighbours = Vec::with_capacity(8);
+            self.get_neighbours(&cell, &mut neighbours);
+            for neighbour in neighbours {
+                self.potential_cells.insert(neighbour);
+            }
         }
     }
 
     pub fn next(&mut self) {
         let mut alive_cells_next: FxHashSet<Cell> =
-            FxHashSet::with_capacity_and_hasher(self.alive_cells.capacity(), FxBuildHasher::default());
-        let mut potential_cells_next: FxHashSet<Cell> =
-            FxHashSet::with_capacity_and_hasher(self.potential_cells.capacity(), FxBuildHasher::default());
+            FxHashSet::with_capacity_and_hasher(self.alive_cells.len(), FxBuildHasher::default());
+        let mut potential_cells_next: FxHashSet<Cell> = FxHashSet::with_capacity_and_hasher(
+            self.potential_cells.len(),
+            FxBuildHasher::default(),
+        );
 
         let mut neighbours = Vec::with_capacity(8);
         for cell in &self.potential_cells {
@@ -111,17 +158,6 @@ impl LifeEngine {
         self.alive_cells.len()
     }
 
-    fn activate_cell_internal(&mut self, cell: &Cell) {
-        if self.is_cell_within_bounds(cell) {
-            self.alive_cells.insert(cell.clone());
-            self.potential_cells.insert(cell.clone());
-            let mut neighbours = Vec::with_capacity(8);
-            self.get_neighbours(&cell, &mut neighbours);
-            for neighbour in neighbours {
-                self.potential_cells.insert(neighbour);
-            }
-        }
-    }
     fn get_neighbours(&self, cell: &Cell, container: &mut Vec<Cell>) {
         container.clear();
         for dx in -1i32..=1i32 {
