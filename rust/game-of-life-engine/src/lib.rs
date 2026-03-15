@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 use rustc_hash::{FxBuildHasher, FxHashSet};
 use std::cmp::min;
 use std::collections::HashSet;
