@@ -61,34 +61,43 @@ impl LifeEngine {
         engine
     }
 
-    pub fn activate_cells(&mut self, cells: HashSet<Cell>) {
+    pub fn activate_cells(&mut self, cells: &[Cell]) -> Result<(), String> {
+        let any_out_of_bounds = cells.iter().any(|c| self.is_cell_within_bounds(c));
+        if any_out_of_bounds {
+            return Err(String::from("some cells out of bounds"))
+        }
         self.alive_cells.reserve(cells.len());
         self.potential_cells.reserve(cells.len() * 8);
         for cell in cells {
             self.do_activate_cell(cell);
         }
+        Ok(())
     }
 
-    pub fn activate_cell(&mut self, x: u32, y: u32) {
+    pub fn activate_cell(&mut self, x: u32, y: u32) -> Result<(), String> {
         let cell = Cell::new(x, y);
-        self.do_activate_cell(cell);
+        if !(self.is_cell_within_bounds(&cell)) {
+            return Err(String::from("cell out of bounds"));
+        }
+        self.do_activate_cell(&cell);
+        Ok(())
     }
 
-    fn do_activate_cell(&mut self, cell: Cell) {
-        if self.is_cell_within_bounds(&cell) {
-            self.alive_cells.insert(cell.clone());
-            self.potential_cells.insert(cell.clone());
-            let mut neighbours = Vec::with_capacity(8);
-            self.get_neighbours(&cell, &mut neighbours);
-            for neighbour in neighbours {
-                self.potential_cells.insert(neighbour);
-            }
+    fn do_activate_cell(&mut self, cell: &Cell) {
+        self.alive_cells.insert(cell.clone());
+        self.potential_cells.insert(cell.clone());
+        let mut neighbours = Vec::with_capacity(8);
+        self.get_neighbours(&cell, &mut neighbours);
+        for neighbour in neighbours {
+            self.potential_cells.insert(neighbour);
         }
     }
 
     pub fn next(&mut self) {
-        let mut alive_cells_next: FxHashSet<Cell> =
-            FxHashSet::with_capacity_and_hasher(self.alive_cells.capacity(), FxBuildHasher::default());
+        let mut alive_cells_next: FxHashSet<Cell> = FxHashSet::with_capacity_and_hasher(
+            self.alive_cells.capacity(),
+            FxBuildHasher::default(),
+        );
         let mut potential_cells_next: FxHashSet<Cell> = FxHashSet::with_capacity_and_hasher(
             self.potential_cells.capacity(),
             FxBuildHasher::default(),
@@ -146,7 +155,7 @@ impl LifeEngine {
         for _ in 0..amount_to_generate {
             let x = rng.random_range(top_left.x..bottom_right.x + 1);
             let y = rng.random_range(top_left.y..bottom_right.y + 1);
-            self.activate_cell(x, y);
+            let _ = self.activate_cell(x, y);
         }
     }
 
