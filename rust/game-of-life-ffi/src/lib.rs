@@ -1,4 +1,5 @@
 use std::collections::hash_set::Iter;
+use std::collections::HashSet;
 use game_of_life_engine::{Cell, LifeEngine};
 
 /* ===== C-compatible FFI surface for C#/PInvoke ===== */
@@ -32,7 +33,16 @@ pub extern "C" fn engine_next(ptr: *mut LifeEngine) {
 #[unsafe(no_mangle)]
 pub extern "C" fn engine_activate_cell(ptr: *mut LifeEngine, x: u32, y: u32) {
     if let Some(engine) = unsafe { ptr.as_mut() } {
-        engine.activate_cell(x, y);
+        let _ = engine.activate_cell(x, y);
+    }
+}
+
+// Activate a set of cells.
+#[unsafe(no_mangle)]
+pub extern "C" fn engine_activate_cells(ptr: *mut LifeEngine, cells: *const Cell, count: usize) {
+    if let Some(engine) = unsafe { ptr.as_mut() } {
+        let cells_slice = unsafe { std::slice::from_raw_parts(cells, count) };
+        let _ =engine.activate_cells(cells_slice);
     }
 }
 

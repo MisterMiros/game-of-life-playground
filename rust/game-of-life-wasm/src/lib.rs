@@ -1,5 +1,5 @@
 use game_of_life_engine::{Cell, LifeEngine};
-use js_sys::{Function, Number};
+use js_sys::{Array, Function, Number, Uint32Array};
 use wasm_bindgen::prelude::*;
 
 /* ===== WASM surface for JS/TS ===== */
@@ -27,8 +27,22 @@ impl LifeEngineWrapper {
 
     // Activate a cell at (x, y).
     #[wasm_bindgen]
-    pub fn activate_cell(&mut self, x: u32, y: u32) {
-        self.engine.activate_cell(x, y);
+    pub fn activate_cell(&mut self, x: u32, y: u32) -> Result<(), String> {
+        self.engine.activate_cell(x, y)
+    }
+
+    #[wasm_bindgen]
+    pub fn activate_cells(&mut self, cells_x: Uint32Array, cells_y: Uint32Array) -> Result<(), String> {
+        if cells_x.length() != cells_y.length() {
+            return Err(String::from("cell arrays must have the same length"));
+        }
+        let mut cells = Vec::with_capacity(cells_x.length() as usize);
+        for i in 0..cells_x.length() {
+            let x = cells_x.get_index(i);
+            let y = cells_y.get_index(i);
+            cells.push(Cell::new(x, y));
+        }
+        self.engine.activate_cells(&cells)
     }
 
     // Generate a random square of cells.
