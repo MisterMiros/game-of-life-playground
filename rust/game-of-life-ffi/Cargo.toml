@@ -8,3 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 game-of-life-engine = { path = "../game-of-life-engine" }
+game-of-life-gpu = { path = "../game-of-life-gpu", optional = true }
+
+[features]
+gpu = ["dep:game-of-life-gpu"]

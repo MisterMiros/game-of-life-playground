@@ -1,6 +1,13 @@
-use std::collections::hash_set::Iter;
-use std::collections::HashSet;
-use game_of_life_engine::{Cell, LifeEngine};
+use game_of_life_engine::Cell;
+#[cfg(not(feature = "gpu"))]
+use game_of_life_engine::LifeEngine;
+#[cfg(feature = "gpu")]
+use game_of_life_gpu::LifeEngine;
+
+pub struct LifeEngineIterator<'a> {
+    iter: Box<dyn Iterator<Item = Cell> + 'a>,
+    current: Option<Cell>,
+}
 
 /* ===== C-compatible FFI surface for C#/PInvoke ===== */
 
@@ -42,7 +49,7 @@ pub extern "C" fn engine_activate_cell(ptr: *mut LifeEngine, x: u32, y: u32) {
 pub extern "C" fn engine_activate_cells(ptr: *mut LifeEngine, cells: *const Cell, count: usize) {
     if let Some(engine) = unsafe { ptr.as_mut() } {
         let cells_slice = unsafe { std::slice::from_raw_parts(cells, count) };
-        let _ =engine.activate_cells(cells_slice);
+        let _ = engine.activate_cells(cells_slice);
     }
 }
 
@@ -61,9 +68,12 @@ pub extern "C" fn engine_generate_random_square(
 
 // Produce an iterator over the alive cells.
 #[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_get<'a>(ptr: *const LifeEngine) -> *mut Iter<'a, Cell> {
+pub extern "C" fn engine_alive_cells_iterator_get<'a>(ptr: *const LifeEngine) -> *mut LifeEngineIterator<'a> {
     if let Some(engine) = unsafe { ptr.as_ref() } {
-        Box::into_raw(Box::new(engine.get_alive_cells()))
+        Box::into_raw(Box::new(LifeEngineIterator {
+            iter: Box::new(engine.get_alive_cells()),
+            current: None,
+        }))
     } else {
         std::ptr::null_mut()
     }
@@ -71,7 +81,7 @@ fn engine_alive_cells_iterator_get<'a>(ptr: *const LifeEngine) -> *mut Iter<'a, 
 
 // Destroy an iterator previously created by engine_alive_cells_iterator_get.
 #[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_free(ptr: *mut Iter<Cell>) {
+pub extern "C" fn engine_alive_cells_iterator_free(ptr: *mut LifeEngineIterator) {
     if ptr.is_null() {
         return;
     }
@@ -82,10 +92,11 @@ fn engine_alive_cells_iterator_free(ptr: *mut Iter<Cell>) {
 
 // Get the next alive cell from the iterator.
 #[unsafe(no_mangle)]
-fn engine_alive_cells_iterator_next(ptr: *mut Iter<Cell>) -> *const Cell {
-    if let Some(iterator) = unsafe { ptr.as_mut() } {
-        if let Some(cell) = iterator.next() {
-            &raw const (*cell)
+pub extern "C" fn engine_alive_cells_iterator_next(ptr: *mut LifeEngineIterator) -> *const Cell {
+    if let Some(wrapper) = unsafe { ptr.as_mut() } {
+        if let Some(cell) = wrapper.iter.next() {
+            wrapper.current = Some(cell);
+            wrapper.current.as_ref().unwrap() as *const Cell
         } else {
             std::ptr::null()
         }

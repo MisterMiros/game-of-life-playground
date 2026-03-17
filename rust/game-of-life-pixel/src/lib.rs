@@ -1,4 +1,8 @@
-use game_of_life_engine::{Cell, LifeEngine};
+use game_of_life_engine::Cell;
+#[cfg(not(feature = "gpu"))]
+use game_of_life_engine::LifeEngine;
+#[cfg(feature = "gpu")]
+use game_of_life_gpu::LifeEngine;
 use macroquad::camera::{set_camera, Camera2D};
 use macroquad::color::{BLACK, LIME, WHITE};
 use macroquad::input::{

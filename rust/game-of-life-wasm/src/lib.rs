@@ -1,4 +1,8 @@
-use game_of_life_engine::{Cell, LifeEngine};
+use game_of_life_engine::Cell;
+#[cfg(not(feature = "gpu"))]
+use game_of_life_engine::LifeEngine;
+#[cfg(feature = "gpu")]
+use game_of_life_gpu::LifeEngine;
 use js_sys::{Array, Function, Number, Uint32Array};
 use wasm_bindgen::prelude::*;
 
@@ -61,7 +65,7 @@ impl LifeEngineWrapper {
     // Iterates over cells and applies JS function to them
     #[wasm_bindgen]
     pub fn for_each_cell_do(&mut self, callback: &Function) {
-        self.engine.get_alive_cells().for_each(|c: &Cell| {
+        self.engine.get_alive_cells().for_each(|c| {
             let _ = callback.call2(&JsValue::NULL, &Number::from(c.x), &Number::from(c.y));
         });
     }

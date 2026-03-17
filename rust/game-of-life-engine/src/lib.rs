@@ -2,7 +2,6 @@ use rand::RngExt;
 use rustc_hash::{FxBuildHasher, FxHashSet};
 use std::cmp::min;
 use std::collections::HashSet;
-use std::collections::hash_set::Iter;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone)]
 #[repr(C)]
@@ -159,8 +158,8 @@ impl LifeEngine {
         }
     }
 
-    pub fn get_alive_cells(&'_ self) -> Iter<'_, Cell> {
-        self.alive_cells.iter()
+    pub fn get_alive_cells(&self) -> impl Iterator<Item = Cell> + '_ {
+        self.alive_cells.iter().cloned()
     }
 
     pub fn get_alive_cells_count(&self) -> usize {

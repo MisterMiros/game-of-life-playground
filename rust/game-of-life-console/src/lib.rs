@@ -1,4 +1,8 @@
-﻿use game_of_life_engine::{Cell, LifeEngine};
+﻿use game_of_life_engine::Cell;
+#[cfg(not(feature = "gpu"))]
+use game_of_life_engine::LifeEngine;
+#[cfg(feature = "gpu")]
+use game_of_life_gpu::LifeEngine;
 use std::collections::HashSet;
 use std::fmt::Write;
 use std::io::{BufRead, Error};
