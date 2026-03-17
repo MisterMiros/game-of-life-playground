@@ -240,7 +240,7 @@ impl LifeEngine {
             });
             cpass.set_pipeline(&self.compute_pipeline);
             cpass.set_bind_group(0, if self.is_a_current { &self.bind_group_a } else { &self.bind_group_b }, &[]);
-            cpass.dispatch_workgroups((self.width_in_u32s + 63) / 64, self.rows, 1);
+            cpass.dispatch_workgroups((self.width_in_u32s + 7) / 8, (self.rows + 7) / 8, 1);
         }
         self.queue.submit(Some(encoder.finish()));
         self.is_a_current = !self.is_a_current;
